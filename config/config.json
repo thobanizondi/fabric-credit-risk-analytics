@@ -1,0 +1,21 @@
+
+{
+    "configs": [
+        {
+            "file": "customers",
+            "key": ["CustomerID"]
+        },
+        {
+            "file": "defaults",
+            "key": ["LoanID"]
+        },
+        {
+            "file": "loans",
+            "key": ["LoanID"]
+        },
+        {
+            "file": "repayments",
+            "key": ["RepaymentID"]
+        }
+    ]
+}
