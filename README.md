@@ -45,7 +45,7 @@ Microsoft Fabric — Credit_Risk_WS
 Power BI  →  4-page dashboard (Portfolio, Risk, Repayments, ML Performance)
 ```
 
-**Ingestion pattern:** the pipeline (`ingest_credit_risk_bronze`) reads `config.json` via a Lookup activity, listing each source file and its key column. A ForEach loop then dynamically copies each file from S3 into its own Delta table under the `Bronze` schema, using the file name and key column from the config — meaning new source files can be added without changing the pipeline itself.
+**Ingestion pattern:** the pipeline (`ingest_credit_risk_bronze`) reads `config.json` via a Lookup activity, listing each source file and its key column. A ForEach loop then dynamically copies each file from S3 into its own Delta table under the `Bronze` schema, using the file name and key column from the config - meaning new source files can be added without changing the pipeline itself.
 
 ## Pipeline Stages
 
@@ -63,9 +63,9 @@ Power BI  →  4-page dashboard (Portfolio, Risk, Repayments, ML Performance)
 
 A Logistic Regression classifier predicts loan default risk from customer and loan features (credit score, income, age, loan amount, interest rate, term, loan type).
 
-**Key challenge - class imbalance:** With only ~7.8% of loans defaulting, an unweighted model achieved 91.9% accuracy simply by predicting "no default" for every single loan — a dangerous, common failure mode in credit risk modelling, since it would let every genuinely risky loan through undetected with zero warning.
+**Key challenge - class imbalance:** With only ~7.8% of loans defaulting, an unweighted model achieved 91.9% accuracy simply by predicting "no default" for every single loan - a dangerous, common failure mode in credit risk modelling, since it would let every genuinely risky loan through undetected with zero warning.
 
-**Fix — weighted logistic regression:** defaults were weighted 10x higher than non-defaults during training, explicitly penalizing the model for missing a real default far more than for a false alarm on a safe loan. This reflects the actual cost asymmetry in lending risk.
+**Fix - weighted logistic regression:** defaults were weighted 10x higher than non-defaults during training, explicitly penalizing the model for missing a real default far more than for a false alarm on a safe loan. This reflects the actual cost asymmetry in lending risk.
 
 **Result:**
 
@@ -74,7 +74,7 @@ A Logistic Regression classifier predicts loan default risk from customer and lo
 | Accuracy | 91.9% | ~75.9% |
 | Recall (defaults correctly caught) | 0% | ~83.9% |
 
-Accuracy dropped, but recall — the metric that actually matters for catching risky loans - improved from 0% to ~84%, at the cost of a controlled increase in false positives. Predictions, including a per-loan default probability, are written back to `gold.fact_loan_predictions` and visualized in the dashboard's ML Model Performance page.
+Accuracy dropped, but recall - the metric that actually matters for catching risky loans - improved from 0% to ~84%, at the cost of a controlled increase in false positives. Predictions, including a per-loan default probability, are written back to `gold.fact_loan_predictions` and visualized in the dashboard's ML Model Performance page.
 
 ## Tech Stack
 
