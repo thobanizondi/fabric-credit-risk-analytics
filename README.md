@@ -123,7 +123,7 @@ Synthetic South African banking data was generated using Python and Faker (`data
 ![Risk and Default Analysis](docs/screenshots/powerbi/risk_default_analysis.png)
 
 **Repayment Performance**
-![Repayment Performance](docs/screenshots/powerbi/repayment_perfomance.png)
+![Repayment Performance](docs/screenshots/powerbi/payment_status_by_loantype.png)
 
 **ML Model Performance**
 ![ML Model Performance](docs/screenshots/powerbi/ml_model_perfomance.png)
