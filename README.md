@@ -112,7 +112,7 @@ Synthetic South African banking data was generated using Python and Faker (`data
 ![AWS S3 Credit Risk Source](docs/screenshots/aws-s3/AWS_S3_credit_risk_source.png)
 
 ### Semantic Model - Star Schema Relationships
-![Semantic Model](docs/screenshots/powerbi/credit_risk_semantic_model.png)
+![Semantic Model](docs/screenshots/powerbi/semantic_model.png)
 
 ### Power BI Dashboard
 
