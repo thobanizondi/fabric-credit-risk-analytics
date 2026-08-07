@@ -84,6 +84,7 @@ Accuracy dropped, but recall - the metric that actually matters for catching ris
 - **Machine Learning:** PySpark MLlib (Logistic Regression, weighted classification)
 - **Serving layer:** Power BI, Direct Lake mode
 - **Modeling:** DAX measures for credit risk and model performance KPIs
+- **Orchestration & alerting:** Fabric Data Pipeline scheduling, retry policies, Discord webhook + native email failure notifications
 
 ## Data Source
 
@@ -102,6 +103,14 @@ Synthetic South African banking data was generated using Python and Faker (`data
 │   └── ml/                          # Default prediction model (PySpark MLlib)
 └── docs/screenshots/                # Workspace and dashboard screenshots
 ```
+## Orchestration & Alerting
+
+The end-to-end pipeline (`orchestrate_credit_risk_end_to_end`) chains ingestion through to the ML notebook, with production-style reliability and monitoring added on top of the core data flow:
+
+- **Retries:** each activity (ingestion, Silver, Gold, ML) is configured to retry on transient failure before the pipeline is marked as failed.
+- **Per-step failure alerting:** a dedicated Web activity is wired to each pipeline step's failure output, posting a message to a Discord channel identifying exactly which step failed.
+- **Native email failure notification:** configured as a secondary alert channel via Fabric's built-in scheduled failure notifications.
+- **Daily schedule:** the pipeline runs automatically every day at 02:00 SAST.
 
 ## Screenshots
 
