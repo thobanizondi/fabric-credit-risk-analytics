@@ -128,6 +128,12 @@ Synthetic South African banking data was generated using Python and Faker (`data
 **ML Model Performance**
 ![ML Model Performance](docs/screenshots/powerbi/ml_model_perfomance.png)
 
+**Orchestration**
+![Orchestration](docs/screenshots/powerbi/orchestration.png)
+
+**Pipeline_Alerts_Discord**
+![Pipeline_Alerts_Discord](docs/screenshots/powerbi/pipeline_alerts_discord.png)
+
 ### Bronze Ingestion Pipeline
 See [`notebooks/bronze/ingest_credit_risk_bronze/`](notebooks/bronze/ingest_credit_risk_bronze/) for pipeline configuration and run history screenshots.
 
