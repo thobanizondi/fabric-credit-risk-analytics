@@ -138,7 +138,7 @@ The end-to-end pipeline (`orchestrate_credit_risk_end_to_end`) chains ingestion 
 ![ML Model Performance](docs/screenshots/powerbi/ml_model_perfomance.png)
 
 **Orchestration**
-![Orchestration](docs/screenshots/powerbi/orchestration.png)
+![Orchestration](docs/screenshots/powerbi/orchestrate.png)
 
 **Pipeline_Alerts_Discord**
 ![Pipeline_Alerts_Discord](docs/screenshots/powerbi/pipeline_alerts_discord.png)
