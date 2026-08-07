@@ -96,20 +96,55 @@ df_loans_final.write.format("delta").mode("overwrite").saveAsTable("silver.silve
 # In[17]:
 
 
-df_repayments_final = (
-    df_repayments_raw
-    .withColumn("DueDate", normalize_date("DueDate"))
-    .withColumn("PaidDate", to_date(col("PaidDate"), "yyyy-MM-dd"))  # already consistent format
-    .withColumn("AmountDue", col("AmountDue").cast("double"))
-    .withColumn("AmountPaid", col("AmountPaid").cast("double"))
-    .withColumn("AmountPaid", when(col("AmountPaid").isNull(), 0.0).otherwise(col("AmountPaid")))
-    .withColumn("Status", upper(trim(col("Status"))))
-    .dropDuplicates(["RepaymentID"])
-)
+from delta.tables import DeltaTable
 
-print("Repayments after cleaning:", df_repayments_final.count())
-spark.sql("CREATE SCHEMA IF NOT EXISTS silver")
-df_repayments_final.write.format("delta").mode("overwrite").saveAsTable("silver.silver_repayments")
+# get last processed ID
+watermark_df = spark.table("bronze.load_watermarks").filter("table_name = 'repayments'")
+last_loaded_id = watermark_df.collect()[0]["last_loaded_id"]
+print(f"Watermark: {last_loaded_id}")
+
+# only new rows since last run
+new_repayments_raw = df_repayments_raw.filter(f"RepaymentID > '{last_loaded_id}'")
+new_count = new_repayments_raw.count()
+print(f"New repayment rows: {new_count}")
+
+if new_count > 0:
+    df_repayments_final = (
+        new_repayments_raw
+        .withColumn("DueDate", normalize_date("DueDate"))
+        .withColumn("PaidDate", to_date(col("PaidDate"), "yyyy-MM-dd"))  # already consistent format
+        .withColumn("AmountDue", col("AmountDue").cast("double"))
+        .withColumn("AmountPaid", col("AmountPaid").cast("double"))
+        .withColumn("AmountPaid", when(col("AmountPaid").isNull(), 0.0).otherwise(col("AmountPaid")))
+        .withColumn("Status", upper(trim(col("Status"))))
+        .dropDuplicates(["RepaymentID"])
+    )
+
+    spark.sql("CREATE SCHEMA IF NOT EXISTS silver")
+
+    if not spark.catalog.tableExists("silver.silver_repayments"):
+        df_repayments_final.write.format("delta").mode("overwrite").saveAsTable("silver.silver_repayments")
+        print(f"silver.silver_repayments created with {new_count} rows")
+    else:
+        silver_table = DeltaTable.forName(spark, "silver.silver_repayments")
+        (
+            silver_table.alias("target")
+            .merge(df_repayments_final.alias("source"), "target.RepaymentID = source.RepaymentID")
+            .whenMatchedUpdateAll()
+            .whenNotMatchedInsertAll()
+            .execute()
+        )
+        print(f"Merged {new_count} rows into silver.silver_repayments")
+
+    new_max_id = new_repayments_raw.agg({"RepaymentID": "max"}).collect()[0][0]
+    spark.sql(f"""
+        UPDATE bronze.load_watermarks
+        SET last_loaded_id = '{new_max_id}'
+        WHERE table_name = 'repayments'
+    """)
+    print(f"Watermark updated to {new_max_id}")
+else:
+    print("Nothing new, skipped merge.")
 
 
 # **Clean Defaults Data**
