@@ -90,6 +90,22 @@ Accuracy dropped, but recall - the metric that actually matters for catching ris
 
 Synthetic South African banking data was generated using Python and Faker (`data_generation/generate_synthetic_data.py`), intentionally including messy multi-format dates, duplicate records, and nulls to simulate real-world data quality issues for the Silver layer to resolve. The generated files (`data/`) were uploaded to the `snowbucketthobani` S3 bucket (eu-north-1) alongside a pipeline config file (`config/config.json`) mapping each file to its key column.
 
+## Incremental Loading
+
+The `repayments` table (the natural transactional/event table in this dataset) uses watermark-based incremental loading through Silver and Gold, rather than a full overwrite on every run. `customers`, `loans`, and `defaults` remain full-refresh, since they are low-volume, slowly-changing reference tables where the added complexity of incremental loading isn't justified.
+
+**How it works:**
+
+- A `bronze.load_watermarks` table tracks the last successfully processed `RepaymentID`, with a separate row for each layer (`repayments` for Silver, `repayments_gold` for Gold). Each layer only ever processes what it, specifically, hasn't handled yet, so either layer can lag or fail independently without affecting the other.
+- `Notebook_Watermark_Setup` creates these watermark rows if they don't exist yet. It is idempotent, so it is safe to run on every pipeline execution without side effects once the rows are in place.
+- `Notebook_Silver` filters bronze repayments to only rows newer than the current watermark, applies the same cleaning logic (mixed date-format normalization, type casting, null handling, deduplication) to just that slice, and MERGEs (upserts) into `silver.silver_repayments` rather than overwriting it.
+- `Notebook_Gold` does the same against `silver.silver_repayments`, using its own independent watermark, and MERGEs into `gold.fact_repayments`.
+- Each watermark only advances after a successful merge, so a failed run safely reprocesses the same slice next time rather than silently skipping data.
+
+**Verification:** each incremental step was tested by running it twice in direct sequence. The first run correctly processed all 74,141 existing repayment rows and advanced the watermark; the second run correctly identified zero new rows and skipped the merge entirely, confirming both the "load new data" and "correctly recognize no new data" paths work as intended.
+
+**Current scope:** incremental loading covers `repayments` through Silver and Gold. `fact_loans` and the dimension tables remain full-rebuild for now, a reasonable near-term next step given they change far less frequently than repayment events.
+
 ## Repository Structure
 
 ```
